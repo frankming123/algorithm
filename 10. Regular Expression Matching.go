@@ -52,81 +52,17 @@ p = "mis*is*p*."
 Output: false
 */
 
-//wrong error-.- I need time to fix it
+//seem the answer, the solution amazed me
 func isMatch(s string, p string) bool {
-	sLen, pLen := len(s), len(p)
-	var i, j int
-
-	for j < pLen {
-		if i == sLen {
-			if j+1 < pLen && p[j+1] == '*' {
-				j++
-				continue
-			} else {
-				return false
-			}
-		}
-
-		switch {
-		case p[j] >= 'a' && p[j] <= 'z':
-			if j+1 < pLen && p[j+1] == '*' {
-				if j+2 < pLen && p[j+2] == p[j] {
-					if s[i] == p[j+2] {
-						pInd := endIndexOfContinuousRepeatChar(p, j+2)
-						sInd := endIndexOfContinuousRepeatChar(s, i)
-
-						if pInd-j-2 <= sInd-i {
-							i = sInd + 1
-							j = pInd
-						} else {
-							return false
-						}
-					} else {
-						return false
-					}
-				} else {
-					for i != sLen && s[i] == p[j] {
-						i++
-					}
-					j++
-				}
-			} else if p[j] != s[i] {
-				return false
-			} else {
-				i++
-			}
-
-		case p[j] == '.':
-			if j+1 < pLen && p[j+1] == '*' {
-				for i != sLen {
-					i++
-				}
-				j++
-			} else {
-				i++
-			}
-		default:
-			return false
-		}
-		j++
+	if len(p) == 0 {
+		return len(s) == 0
 	}
 
-	if i != sLen {
-		return false
+	firstMatch := len(s) != 0 && (s[0] == p[0] || p[0] == '.')
+
+	if len(p) >= 2 && p[1] == '*' {
+		return isMatch(s, p[2:]) || (firstMatch && isMatch(s[1:], p))
+	} else {
+		return firstMatch && isMatch(s[1:], p[1:])
 	}
-
-	return true
-}
-
-func endIndexOfContinuousRepeatChar(s string, ind int) int {
-	char := s[ind]
-	i := ind
-	for i+1 < len(s) {
-		if s[i+1] != char {
-			break
-		}
-		i++
-	}
-
-	return i
 }
