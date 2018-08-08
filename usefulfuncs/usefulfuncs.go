@@ -1,5 +1,17 @@
 package usefulfuncs
 
+type ListNode struct {
+	Val  int
+	Next *ListNode
+}
+
+func Travel(node *ListNode){
+	for node!=nil{
+		println(node.Val)
+		node=node.Next
+	}
+}
+
 func Max(a, b int) int {
 	if a > b {
 		return a
