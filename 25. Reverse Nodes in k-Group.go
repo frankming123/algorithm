@@ -1,0 +1,57 @@
+/*
+25. Reverse Nodes in k-Group
+
+Given a linked list, reverse the nodes of a linked list k at a time and return its modified list.
+
+k is a positive integer and is less than or equal to the length of the linked list. If the number of nodes is not a multiple of k then left-out nodes in the end should remain as it is.
+
+Example:
+
+Given this linked list: 1->2->3->4->5
+
+For k = 2, you should return: 2->1->4->3->5
+
+For k = 3, you should return: 3->2->1->4->5
+
+Note:
+
+Only constant extra memory is allowed.
+You may not alter the values in the list's nodes, only nodes itself may be changed.
+*/
+
+type ListNode struct {
+	Val  int
+	Next *ListNode
+}
+
+func reverseKGroup(head *ListNode, k int) *ListNode {
+	res := &ListNode{}
+	node := res
+
+	for !isTillTail(head, k) {
+		node.Next = head
+		head = head.Next
+		for i := 0; i < k-1; i++ {
+			tmp := head.Next
+			head.Next = node.Next
+			node.Next = head
+			head = tmp
+		}
+		for i := 0; i < k; i++ {
+			node = node.Next
+		}
+	}
+
+	node.Next = head
+	return res.Next
+}
+
+func isTillTail(head *ListNode, k int) bool {
+	for i := 0; i < k; i++ {
+		if head == nil {
+			return true
+		}
+		head = head.Next
+	}
+	return false
+}
