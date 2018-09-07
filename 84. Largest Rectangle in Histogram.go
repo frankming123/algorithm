@@ -16,6 +16,7 @@ Input: [2,1,5,6,2,3]
 Output: 10
 */
 
+//solution one
 func largestRectangleArea(heights []int) int {
 	if len(heights) == 0 {
 		return 0
@@ -44,4 +45,38 @@ func max(a, b int) int {
 	} else {
 		return b
 	}
+}
+
+//solution two
+func largestRectangleArea(heights []int) int {
+	heightlen := len(heights)
+	if heightlen == 0 {
+		return 0
+	}
+
+	left := make([]int, heightlen)
+	right := make([]int, heightlen)
+	left[0] = -1
+	right[heightlen-1] = heightlen
+	largest := 0
+
+	for i := 1; i < heightlen; i++ {
+		p := i - 1
+		for p >= 0 && heights[p] >= heights[i] {
+			p = left[p]
+		}
+		left[i] = p
+	}
+	for i := heightlen - 2; i >= 0; i-- {
+		p := i + 1
+		for p < heightlen && heights[p] >= heights[i] {
+			p = right[p]
+		}
+		right[i] = p
+	}
+
+	for i := 0; i < heightlen; i++ {
+		largest = max(largest, heights[i]*(right[i]-left[i]-1))
+	}
+	return largest
 }
