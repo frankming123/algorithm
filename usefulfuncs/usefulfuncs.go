@@ -12,6 +12,15 @@ func Travel(node *ListNode){
 	}
 }
 
+func listNew(a ...int) *ListNode {
+	list := &ListNode{0, nil}
+	for i := range a {
+		list.Next = &ListNode{i, nil}
+		list = list.Next
+	}
+	return list
+}
+
 func Max(a, b int) int {
 	if a > b {
 		return a
