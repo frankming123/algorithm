@@ -13,7 +13,7 @@ func Travel(node *ListNode){
 	}
 }
 
-func listNew(a ...int) *ListNode {
+func NewList(a ...int) *ListNode {
 	head := &ListNode{0, nil}
 	list := head
 	for _, i := range a {
