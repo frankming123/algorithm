@@ -1,4 +1,4 @@
-package usefulfuncs
+package funcs
 
 //simply-linked list
 type ListNode struct {
