@@ -1,11 +1,10 @@
 #include <iostream>
-#include <vector>
 
 using namespace std;
 
 int main(int argc, char const *argv[]) {
-    int a;
-    cin >> a;
-    cout << (a % 10) << endl;
+    int a, b;
+    cin >> a >> b;
+    cout << ((a - (a ^ b) - b) == 0 ? "Yes" : "No") << endl;
     return 0;
 }
