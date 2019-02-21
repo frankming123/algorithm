@@ -78,6 +78,7 @@ int main() {
         rtra = 99999999;
         tmpv.clear();
         rv.clear();
+        tmpv.push_back(t1);
         dfs(t1, 0);
         printf("%d\n", rcnt);
         int prev = t1, preline = 0;
