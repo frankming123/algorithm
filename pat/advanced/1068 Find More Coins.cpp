@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <iostream>
-
 using namespace std;
 
 int num[10000];
