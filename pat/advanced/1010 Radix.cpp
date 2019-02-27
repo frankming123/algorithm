@@ -1,50 +1,54 @@
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iostream>
 #include <string>
 
 using namespace std;
 
-bool stolerr;
+#define ll long long int
 
-long mystol(string num, int radix) {
-    stolerr = false;
-    long res = 0;
-    bool isNeg = false;
+string n1, n2;
+int tag, radix;
 
-    int digit = 0;
-    for (int i = 0; i < num.length(); i++) {
-        if (num[i] >= '0' && num[i] <= '9')
-            digit = num[i] - '0';
+ll transfer(string s, int base) {
+    ll res = 0;
+    reverse(s.begin(), s.end());
+    for (int i = 0; i < s.length(); i++) {
+        int num;
+        if (isalpha(s[i]))
+            num = s[i] - 'a' + 10;
         else
-            digit = num[i] - 'a' + 10;
-        if (digit >= radix) {
-            stolerr = true;
-            return 0;
-        }
-        res += pow(radix, num.length() - i - 1) * digit;
+            num = s[i] - '0';
+        if (base <= num)
+            return -1;
+        res += pow(base, i) * num;
     }
     return res;
 }
 
-int main(int argc, char const *argv[]) {
-    string n1, n2;
-    int tag, radix;
+int main() {
     cin >> n1 >> n2 >> tag >> radix;
-    long num1, num2;
-    num1 = mystol(tag == 1 ? n1 : n2, radix);
+    if (tag == 2)
+        swap(n1, n2);
 
-    for (int i = 2; i <= 100; i++) {
-        num2 = mystol(tag == 1 ? n2 : n1, i);
-        if (stolerr)
-            continue;
-        if (num2 > num1) {
-            printf("Impossible");
-            return 0;
-        } else if (num2 == num1) {
-            printf("%d", i);
-            return 0;
-        }
+    ll num1 = transfer(n1, radix), num2;
+    // printf("num1: %d\n", num1);
+
+    int l = 2, r = 100;
+    while (l < r) {
+        int mid = (r + l) / 2;
+        num2 = transfer(n2, mid);
+        // printf("mid: %d num2: %d\n", mid, num2);
+        if (num1 <= num2)
+            r = mid;
+        else
+            l = mid + 1;
     }
-    printf("Impossible");
+    num2 = transfer(n2, l);
+    if (num1 == num2)
+        printf("%d", l);
+    else
+        printf("Impossible");
     return 0;
 }

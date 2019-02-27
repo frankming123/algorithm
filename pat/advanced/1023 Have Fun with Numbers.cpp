@@ -1,42 +1,36 @@
 #include <algorithm>
 #include <iostream>
-#include <sstream>
 #include <string>
 
 using namespace std;
 
-string doubleIt(string str) {
-    stringstream sstream;
-    int digit, tmp, up = 0;
-    for (int i = str.length() - 1; i >= 0; i--) {
-        digit = (str[i] - '0') * 2 + up;
-        sstream << digit % 10;
-        up = digit / 10;
+int cnt[10];
+
+int main() {
+    string s;
+    cin >> s;
+    for (int i = 0; i < s.length(); i++)
+        cnt[s[i] - '0']++;
+    int add = 0, sum = 0;
+    string res;
+    for (int i = s.length() - 1; i >= 0; i--) {
+        sum = (s[i] - '0') * 2 + add;
+        add = sum / 10;
+        sum %= 10;
+        res += sum + '0';
+        cnt[sum]--;
     }
-    if (up != 0)
-        sstream << up;
-
-    string res = sstream.str();
-    reverse(res.begin(), res.end());
-    return res;
-}
-
-int main(int argc, char const *argv[]) {
-    string str, res;
-    cin >> str;
-    res = doubleIt(str);
-    int count[10] = {0};
-    for (int i = 0; i < str.length(); i++)
-        count[str[i] - '0']++;
-    for (int i = 0; i < res.length(); i++)
-        count[res[i] - '0']--;
-
+    if (add != 0) {
+        cnt[add]--;
+        res += add + '0';
+    }
     bool flag = false;
     for (int i = 0; i < 10; i++)
-        if (count[i] != 0)
+        if (cnt[i] != 0) {
             flag = true;
-
-    printf("%s\n", flag ? "No" : "Yes");
-    cout << res << endl;
+            break;
+        }
+    reverse(res.begin(), res.end());
+    printf("%s\n%s", flag ? "No" : "Yes", res.c_str());
     return 0;
 }

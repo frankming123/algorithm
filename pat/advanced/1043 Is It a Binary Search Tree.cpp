@@ -1,94 +1,61 @@
+// can not pass the last testcase
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
 int n;
-vector<int> tree(1024);
+int tree[1000];
+
+vector<int> res;
+
 bool isBST = true;
 
-void print(vector<int> &v) {
-    for (int i = 0; i < v.size(); i++)
-        cout << v[i] << " ";
-    cout << endl;
-}
+void build(int l, int r) {
+    if (l >= r)
+        return;
+    int root = tree[l];
+    int pos1 = l + 1;
+    while (pos1 < r && tree[pos1] < root)
+        pos1++;
+    int pos2 = l + 1;
+    while (pos2 < r && tree[pos2] >= root)
+        pos2++;
 
-vector<int> run1(int l, int r) {
-    //printf("l: %d r: %d tree[l]: %d\n", l, r, tree[l]);
-    if (!isBST || r == l)
-        return vector<int>();
-    if (r - l == 1)
-        return vector<int>(1, tree[l]);
-    int pos = l;
-    bool flag = false;
-    for (int i = l + 1; i < r; i++)
-        if (!flag && tree[i] >= tree[l]) {
-            pos = i;
-            flag = true;
-        } else if (flag && tree[i] < tree[l]) {
-            isBST = false;
-            return vector<int>();
-        }
-    //printf("l: %d r: %d pos: %d\n", l, r, pos);
-
-    vector<int> left = run1(l + 1, pos);
-    vector<int> right = run1(pos, r);
-    vector<int> res;
-    res.insert(res.end(), left.begin(), left.end());
-    res.insert(res.end(), right.begin(), right.end());
-    res.push_back(tree[l]);
-    //print(res);
-    return res;
-}
-
-vector<int> run2(int l, int r) {
-    //printf("l: %d r: %d tree[l]: %d\n", l, r, tree[l]);
-    if (!isBST || r == l)
-        return vector<int>();
-    if (r - l == 1)
-        return vector<int>(1, tree[l]);
-    int pos = l;
-    bool flag = false;
-    for (int i = l + 1; i < r; i++)
-        if (!flag && tree[i] < tree[l]) {
-            pos = i;
-            flag = true;
-        } else if (flag && tree[i] >= tree[l]) {
-            isBST = false;
-            return vector<int>();
-        }
-    //printf("l: %d r: %d pos: %d\n", l, r, pos);
-
-    vector<int> left = run2(l + 1, pos);
-    vector<int> right = run2(pos, r);
-    vector<int> res;
-    res.insert(res.end(), left.begin(), left.end());
-    res.insert(res.end(), right.begin(), right.end());
-    res.push_back(tree[l]);
-    //print(res);
-    return res;
+    if (pos2 < pos1) {
+        for (int i = pos1; i < r; i++)
+            if (tree[i] < root) {
+                isBST = false;
+                // printf("pos1: %d %d %d\n", pos1, tree[i], root);
+            }
+        build(l + 1, pos1);
+        build(pos1, r);
+    } else if (pos2 > pos1) {
+        for (int i = pos2; i < r; i++)
+            if (tree[i] >= root) {
+                isBST = false;
+                // printf("pos2: %d %d %d\n", pos2, tree[i], root);
+            }
+        build(l + 1, pos2);
+        build(pos2, r);
+    }
+    res.push_back(root);
 }
 
 int main() {
-    std::ios::sync_with_stdio(false);
     cin >> n;
     for (int i = 0; i < n; i++)
         cin >> tree[i];
-
-    vector<int> res = run1(0, n);
+    build(0, n);
     if (!isBST) {
-        isBST = true;
-        res = run2(0, n);
-        if (!isBST) {
-            cout << "NO" << endl;
-            return 0;
-        }
+        printf("NO");
+        return 0;
     }
-    cout << "YES" << endl;
-    bool flag = false;
+    printf("YES\n");
     for (int i = 0; i < res.size(); i++) {
-        cout << (flag ? " " : "") << res[i];
-        flag = true;
+        if (i != 0)
+            printf(" ");
+        printf("%d", res[i]);
     }
     return 0;
 }

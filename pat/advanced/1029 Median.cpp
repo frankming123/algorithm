@@ -1,39 +1,45 @@
-// 7/9...
+// 8/9-.-
 #include <iostream>
 
 using namespace std;
 
-int main(int argc, char const *argv[]) {
-    std::ios::sync_with_stdio(false);
-    int n, m;
-    cin >> n;
-    int *array1 = new int[n];
-    for (int i = 0; i < n; i++)
-        cin >> array1[i];
-    cin >> m;
+#define ll int
 
-    int mid = (m + n - 1) / 2;
-    int l1 = 0, l2 = 0, input;
-    cin >> input;
-    while (l1 + l2 < mid) {
-        // printf("l1:%d %d l2:%d %d\n", l1, array1[l1], l2, input);
-        if (l1 >= n - 1) {
-            cin >> input;
-            l2++;
-            continue;
-        } else if (l2 >= m - 1) {
-            l1++;
-            continue;
+int n1, n2;
+ll num1[200005];
+
+int main() {
+    scanf("%d", &n1);
+    for (int i = 0; i < n1; i++)
+        scanf("%d", &num1[i]);
+    scanf("%d", &n2);
+    ll num, res, pos = 0;
+    int now = 0, mid = (n1 + n2 - 1) / 2;
+    for (int i = 0; i < n2; i++) {
+        scanf("%d", &num);
+        while (pos < n1 && num1[pos] < num) {
+            // printf("pos: %d now: %d\n", pos, now);
+            if (now == mid) {
+                printf("%d", num1[pos]);
+                return 0;
+            }
+            pos++;
+            now++;
         }
-        if (array1[l1] < input)
-            l1++;
-        else {
-            cin >> input;
-            l2++;
+        // printf("i: %d now: %d\n", i, now);
+        if (now == mid) {
+            printf("%d", num);
+            return 0;
         }
+        now++;
     }
-
-    printf("%d", array1[l1] < input ? array1[l1] : input);
-
+    while (pos < n1) {
+        if (now == mid) {
+            printf("%d", num);
+            return 0;
+        }
+        now++;
+        pos++;
+    }
     return 0;
 }

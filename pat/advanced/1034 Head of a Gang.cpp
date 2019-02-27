@@ -1,74 +1,81 @@
+#include <algorithm>
 #include <iostream>
 #include <map>
-#include <set>
 #include <string>
+#include <vector>
 
 using namespace std;
 
-map<string, int> calls;
-map<string, set<string>> relations;
-map<string, int> res;
-set<string> passed;
+int n, k, len;
+map<string, int> name;
+int cnt[2000];
+int pre[2000];
+struct node {
+    string id;
+    int total, cnt, maxcnt;
+};
+bool cmp(node &a, node &b) {
+    return a.id < b.id;
+}
 
-string head;
-int total;
-int maxcall;
-int nums;
-
-void run(string now) {
-    passed.insert(now);
-    total += calls[now];
-    nums++;
-    if (calls[now] > maxcall) {
-        maxcall = calls[now];
-        head = now;
+int find(int now) {
+    int root = now;
+    while (pre[root] != root)
+        root = pre[root];
+    while (now != root) {
+        int tmp = now;
+        now = pre[now];
+        pre[tmp] = root;
     }
-    for (set<string>::iterator it = relations[now].begin(); it != relations[now].end(); it++)
-        if (!passed.count(*it))
-            run(*it);
+    return root;
+}
+void myUnion(int a, int b) {
+    int root1 = find(a), root2 = find(b);
+    pre[root2] = root1;
 }
 
 int main() {
-    int n, k;
+    for (int i = 0; i < 2000; i++)
+        pre[i] = i;
     cin >> n >> k;
-    string str1, str2;
-    int time;
+    string s1, s2;
+    int tmp;
     while (n--) {
-        cin >> str1 >> str2 >> time;
-        if (calls.count(str1))
-            calls[str1] += time;
-        else
-            calls[str1] = time;
-        if (calls.count(str2))
-            calls[str2] += time;
-        else
-            calls[str2] = time;
-        relations[str1].insert(str2);
-        relations[str2].insert(str1);
+        cin >> s1 >> s2 >> tmp;
+        if (name.find(s1) == name.end())
+            name[s1] = len++;
+        if (name.find(s2) == name.end())
+            name[s2] = len++;
+        cnt[name[s1]] += tmp;
+        cnt[name[s2]] += tmp;
+        myUnion(name[s1], name[s2]);
     }
-    // for (map<string, int>::iterator it = calls.begin(); it != calls.end(); it++)
-    //     cout << it->first << " " << it->second << endl;
-    // for (map<string, set<string>>::iterator it = relations.begin(); it != relations.end(); it++) {
-    //     cout << it->first << ":";
-    //     for (set<string>::iterator sit = it->second.begin();
-    //          sit != it->second.end(); sit++) {
-    //         cout << " " << *sit;
-    //     }
-    //     cout << endl;
-    // }
 
-    for (map<string, int>::iterator it = calls.begin(); it != calls.end(); it++) {
-        total = 0;
-        maxcall = 0;
-        nums = 0;
-        if (!passed.count(it->first))
-            run(it->first);
-        if (total / 2 > k && nums > 2)
-            res[head] = nums;
+    map<int, node> mmap;
+    for (map<string, int>::iterator it = name.begin(); it != name.end(); it++) {
+        int i = it->second;
+        int now = find(i);
+        if (mmap.find(now) == mmap.end())
+            mmap[now] = node{it->first, cnt[i], 1, cnt[i]};
+        else {
+            mmap[now].total += cnt[i];
+            mmap[now].cnt++;
+            if (cnt[i] > mmap[now].maxcnt) {
+                mmap[now].maxcnt = cnt[i];
+                mmap[now].id = it->first;
+            }
+        }
     }
+    vector<node> res;
+    for (map<int, node>::iterator it = mmap.begin(); it != mmap.end(); it++) {
+        if (it->second.total / 2 > k && it->second.cnt > 2)
+            res.push_back(it->second);
+    }
+    sort(res.begin(), res.end(), cmp);
+
     cout << res.size() << endl;
-    for (map<string, int>::iterator it = res.begin(); it != res.end(); it++)
-        cout << it->first << " " << it->second << endl;
+    for (int i = 0; i < res.size(); i++)
+        cout << res[i].id << " " << res[i].cnt << endl;
 
     return 0;
 }

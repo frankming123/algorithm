@@ -1,91 +1,101 @@
-// 5/9, but I want give up it.
+// 7/9, but I want give up it.
 #include <algorithm>
 #include <iostream>
-#include <string>
+#include <queue>
 #include <vector>
 
 using namespace std;
 
-struct player {
-    int time;
-    int cost;
-    int vip;
+int n, k, m;
+struct node {
+    int tim, cost, isvip;
 };
-vector<player> players(10000);
-
-bool cmp(player &a, player &b) { return a.time < b.time; }
-
-void time2hms(int time) {
-    printf("%02d:%02d:%02d", time / 3600, (time / 60) % 60, (time % 60));
+vector<node> v, res;
+int table[110], isvip[110];
+bool cmp(node &a, node &b) {
+    return a.tim < b.tim;
+}
+bool cmp1(node &a, node &b) {
+    return a.cost < b.cost;
 }
 
-int main(int argc, char const *argv[]) {
-    int n, h, m, s, cost, vip;
-    cin >> n;
+int main() {
+    scanf("%d", &n);
+    v.resize(n);
+    int t1, t2, t3, t4, t5;
     for (int i = 0; i < n; i++) {
-        scanf("%d:%d:%d %d %d", &h, &m, &s, &cost, &vip);
-        players[i] =
-            player{h * 3600 + m * 60 + s, cost > 120 ? 120 : cost, vip};
+        scanf("%d:%d:%d%d%d", &t1, &t2, &t3, &t4, &t5);
+        v[i].tim = t1 * 3600 + t2 * 60 + t3;
+        v[i].cost = t4 * 60;
+        v[i].isvip = t5;
     }
-    sort(players.begin(), players.begin() + n, cmp);
-
-    int K, M;
-    int viptable[K] = {0};
-    cin >> K >> M;
-    while (M--) {
-        int tmp;
-        cin >> tmp;
-        viptable[tmp - 1] = 1;
+    scanf("%d%d", &k, &m);
+    for (int i = 0; i < m; i++) {
+        scanf("%d", &t1);
+        isvip[t1] = 1;
     }
+    sort(v.begin(), v.end(), cmp);
 
-    int time[K];
-    fill(time, time + K, 28800);
-    int counts[K] = {0};
-
-    for (int i = 0; i < n; i++) {
-        int arrive = players[i].time, cost = players[i].cost;
-        int pos = 0, now = 1 << 31 - 1;
-        for (int j = 0; j < K; j++)
-            now = time[j] < now ? time[j] : now;
-        while (time[pos] != now)
-            pos++;
-        if (now >= 75600)
+    fill(table + 1, table + k + 1, 28800);
+    vector<int> cnt(k + 1, 0);
+    for (int i = 0; i < v.size(); i++) {
+        int pos = 1, tim = table[1];
+        for (int j = 1; j <= k; j++)
+            if (table[j] < tim) {
+                pos = j;
+                tim = table[j];
+            }
+        if (tim >= 75600)
             break;
-
-        // printf("arrive:%d now:%d cost:%d\n", arrive, now, cost);
-
-        if (viptable[pos])
-            for (int j = i + 1; j < n && players[j].time <= now; j++)
-                if (players[j].vip) {
-                    arrive = players[j].time;
-                    cost = players[j].cost;
-                    players.erase(players.begin() + j);
-                    n--;
+        bool flag = false;
+        if (isvip[pos]) {
+            for (int j = i; j < n && v[j].tim <= tim; j++)
+                if (v[j].isvip) {
+                    flag = true;
+                    res.push_back(node{v[j].tim, tim, tim - v[j].tim});
+                    table[pos] += v[j].cost;
+                    v.erase(v.begin() + j);
+                    cnt[pos]++;
                     i--;
                     break;
                 }
-        cost *= 60;
-
-        if (now <= arrive) {
-            time2hms(arrive);
-            printf(" ");
-            time2hms(arrive);
-            printf(" 0\n");
-            time[pos] = arrive + cost;
-        } else {
-            time2hms(arrive);
-            printf(" ");
-            time2hms(now);
-            printf(" %d\n",
-                   (now - arrive) / 60 + ((now - arrive) % 60 >= 30 ? 1 : 0));
-            time[pos] = now + cost;
         }
-        counts[pos]++;
+        if (flag)
+            continue;
+        if (v[i].isvip && v[i].tim >= tim) {
+            int vipos = -1;
+            for (int j = 1; j <= k; j++) {
+                if (isvip[j] && table[j] == tim) {
+                    vipos = j;
+                    break;
+                }
+            }
+            if (vipos != -1) {
+                table[vipos] = v[i].tim + v[i].cost;
+                res.push_back(node{v[i].tim, v[i].tim, 0});
+                cnt[vipos]++;
+                continue;
+            }
+        }
+        cnt[pos]++;
+        if (v[i].tim >= 75600)
+            break;
+        if (v[i].tim > tim) {
+            res.push_back(node{v[i].tim, v[i].tim, 0});
+            table[pos] = v[i].tim + v[i].cost;
+        } else {
+            res.push_back(node{v[i].tim, tim, tim - v[i].tim});
+            table[pos] += v[i].cost;
+        }
     }
-    bool flag = false;
-    for (int i = 0; i < K; i++) {
-        printf("%s%d", flag ? " " : "", counts[i]);
-        flag = true;
+    sort(res.begin(), res.end(), cmp1);
+    for (int i = 0; i < res.size(); i++) {
+        printf("%02d:%02d:%02d %02d:%02d:%02d %d\n", res[i].tim / 3600, res[i].tim / 60 % 60, res[i].tim % 60, res[i].cost / 3600, res[i].cost / 60 % 60, res[i].cost % 60, (res[i].isvip + 30) / 60);
+    }
+    for (int i = 1; i < cnt.size(); i++) {
+        if (i != 1)
+            printf(" ");
+        printf("%d", cnt[i]);
     }
     return 0;
 }

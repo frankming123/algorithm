@@ -1,67 +1,49 @@
-/*
-1. customers who comes early then 17:00:01 all can service
-2. service more than 1 hour should be 1 hour
-*/
 #include <algorithm>
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
-struct custom {
-    int time;
-    int cost;
+int n, k;
+
+struct node {
+    int tim, use;
 };
-
-bool isEarlier(custom &a, custom &b) { return a.time < b.time; }
-
-int posOfWindows(vector<int> &window) {
-    int minw = window[0];
-    for (int i = 0; i < window.size(); i++)
-        minw = window[i] < minw ? window[i] : minw;
-    for (int i = 0; i < window.size(); i++)
-        if (window[i] == minw)
-            return i;
+bool cmp(node &a, node &b) {
+    return a.tim < b.tim;
 }
+vector<node> v;
 
-void print(vector<custom> &c) {
-    for (int i = 0; i < c.size(); i++)
-        printf("time: %d cost: %d\n", c[i].time, c[i].cost);
-}
-
-int main(int argc, char const *argv[]) {
-    int n, k;
-    cin >> n >> k;
-
-    vector<custom> c;
-    int tmp1, tmp2, tmp3, tmp4, tmp;
+int main() {
+    scanf("%d%d", &n, &k);
+    int t1, t2, t3, t4;
     for (int i = 0; i < n; i++) {
-        scanf("%d:%d:%d %d", &tmp1, &tmp2, &tmp3, &tmp4);
-        tmp = tmp1 * 3600 + tmp2 * 60 + tmp3;
-        if (tmp > 61200)
+        scanf("%d:%d:%d%d", &t1, &t2, &t3, &t4);
+
+        if (t1 * 3600 + t2 * 60 + t3 > 61200)
             continue;
-        c.push_back(custom{tmp, (tmp4 > 60 ? 60 : tmp4) * 60});
+        v.push_back(node{t1 * 3600 + t2 * 60 + t3, (t4 > 60 ? 60 : t4) * 60});
     }
-    sort(c.begin(), c.end(), isEarlier);
-    // print(c);
+    sort(v.begin(), v.end(), cmp);
 
     vector<int> window(k, 28800);
-    int total = 0;
+    int cnt = 0;
+    for (int i = 0; i < v.size(); i++) {
+        node now = v[i];
+        int tim = window[0], winn = 0;
+        for (int j = 0; j < k; j++)
+            if (window[j] < tim) {
+                tim = window[j];
+                winn = j;
+            }
 
-    for (int i = 0; i < c.size(); i++) {
-        int pos = posOfWindows(window);
-        // printf("pos: %d time: %d\n", pos, window[pos]);
-        if (window[pos] > c[i].time) {
-            total += window[pos] - c[i].time;
-            window[pos] += c[i].cost;
+        if (now.tim < tim) {
+            cnt += tim - now.tim;
+            window[winn] += now.use;
         } else {
-            window[pos] = c[i].time + c[i].cost;
+            window[winn] = now.tim + now.use;
         }
     }
-
-    if (c.size() == 0)
-        printf("0.0\n");
-    else
-        printf("%.1f\n", double(total) / c.size() / 60);
+    printf("%.1lf", double(cnt) / 60 / v.size());
     return 0;
 }

@@ -1,94 +1,92 @@
-// can not pass testpoint 8 and 9 T_T
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
-int maxcost = 99999999;
-int maxtake = 99999999;
-int maxbring = 99999999;
-vector<int> st, res;
+#define inf 99999999
 
-void dfs(vector<vector<int>> &road, vector<int> &cap, vector<int> &ispassed,
-         int now, int goal, int cost, int take, int bring) {
-    //printf("now: %d cost: %d take: %d bring: %d\n", now, cost, take, bring);
-    // printf("st: ");
-    // for (int i = 0; i < st.size(); i++)
-    //     printf("%d ", st[i]);
-    // printf("cost: %d take: %d", cost, take);
-    // printf("\n");
-    if (now == goal) {
-        if (cost == maxcost) {
-            if (take == maxtake) {
-                // printf("%d %d\n", take, maxtake);
-                if (bring < maxbring) {
-                    maxbring = bring;
-                    res.assign(st.begin(), st.end());
-                }
-            } else if (take < maxtake) {
-                maxtake = take;
-                maxbring = bring;
-                res.assign(st.begin(), st.end());
+int cmax, n, sp, m;
+int road[510][510];
+int bike[510];
+vector<int> pre[510];
+vector<int> tmpath, path;
+int mintake = inf, minbring = inf;
+
+void dfs(int now) {
+    tmpath.push_back(now);
+    if (now == 0) {
+        int take = 0, bring = 0;
+        for (int i = tmpath.size() - 1; i >= 0; i--) {
+            int n = tmpath[i];
+            if (bike[n] >= 0)
+                bring += bike[n];
+            else if (bring >= (0 - bike[n]))
+                bring += bike[n];
+            else {
+                take -= bike[n] + bring;
+                bring = 0;
             }
-        } else if (cost < maxcost) {
-            maxcost = cost;
-            maxtake = take;
-            maxbring = bring;
-            res.assign(st.begin(), st.end());
         }
+        // printf("take: %d bring: %d\n", take, bring);
+        if (mintake > take) {
+            mintake = take;
+            minbring = bring;
+            path = tmpath;
+        } else if (mintake == take && minbring > bring) {
+            minbring = bring;
+            path = tmpath;
+        }
+        tmpath.pop_back();
         return;
     }
-    ispassed[now] = 1;
-    st.push_back(now);
-    for (int i = 1; i < road[now].size(); i++) {
-        if (ispassed[i] || road[now][i] == 0)
-            continue;
-
-        if (cap[i] > 0) {
-            dfs(road, cap, ispassed, i, goal, cost + road[now][i], take,
-                bring + cap[i]);
-        } else if (bring + cap[i] >= 0) {
-            dfs(road, cap, ispassed, i, goal, cost + road[now][i], take,
-                bring + cap[i]);
-        } else {
-            dfs(road, cap, ispassed, i, goal, cost + road[now][i],
-                take - bring - cap[i], 0);
-        }
-    }
-    ispassed[now] = 0;
-    st.pop_back();
+    for (int i = 0; i < pre[now].size(); i++)
+        dfs(pre[now][i]);
+    tmpath.pop_back();
 }
 
-int main(int argc, char const *argv[]) {
-    int c, n, s, m;
-    cin >> c >> n >> s >> m;
-
-    vector<int> cap(n + 1);
+int main() {
+    fill(road[0], road[0] + 510 * 510, inf);
+    cin >> cmax >> n >> sp >> m;
     for (int i = 1; i <= n; i++) {
-        int tmp;
-        cin >> tmp;
-        cap[i] = tmp - c / 2;
+        cin >> bike[i];
+        bike[i] -= cmax / 2;
     }
-
-    vector<vector<int>> road(n + 1, vector<int>(n + 1, 0));
-
-    int tmp1, tmp2, tmp3;
+    int t1, t2, t3;
     for (int i = 0; i < m; i++) {
-        cin >> tmp1 >> tmp2 >> tmp3;
-        road[tmp1][tmp2] = tmp3;
-        road[tmp2][tmp1] = tmp3;
+        cin >> t1 >> t2 >> t3;
+        road[t1][t2] = t3;
+        road[t2][t1] = t3;
     }
 
-    vector<int> ispassed(n, 0);
-
-    dfs(road, cap, ispassed, 0, s, 0, 0, 0);
-
-    // printf("%d %d\n", maxcost, maxtake);
-    printf("%d ", maxtake);
-
-    for (int i = 0; i < res.size(); i++) {
-        printf("%d->", res[i]);
+    vector<int> dis(n + 1, inf), visits(n + 1, 0);
+    dis[0] = 0;
+    for (int i = 0; i <= n; i++) {
+        int minn = inf, pos = -1;
+        for (int j = 0; j <= n; j++)
+            if (visits[j] == 0 && dis[j] < minn) {
+                minn = dis[j];
+                pos = j;
+            }
+        if (pos == -1)
+            break;
+        visits[pos] = 1;
+        for (int j = 0; j <= n; j++) {
+            if (road[pos][j] == inf || visits[j])
+                continue;
+            if (road[pos][j] + dis[pos] < dis[j]) {
+                dis[j] = dis[pos] + road[pos][j];
+                pre[j].clear();
+                pre[j].push_back(pos);
+            } else if (road[pos][j] + dis[pos] == dis[j])
+                pre[j].push_back(pos);
+        }
     }
-    printf("%d %d", s, maxbring);
+    dfs(sp);
+
+    printf("%d 0", mintake);
+    for (int i = path.size() - 2; i >= 0; i--)
+        printf("->%d", path[i]);
+    printf(" %d", minbring);
     return 0;
 }
