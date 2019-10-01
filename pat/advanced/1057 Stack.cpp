@@ -1,76 +1,58 @@
-#include <algorithm>
 #include <iostream>
-#include <vector>
+#include <stack>
 
 using namespace std;
 
-vector<int> stack(100001);
-vector<int> sorts(100001, 0);
-int top = -1;
+#define lowbit(x) (x & -x)
 
-int lowbit(int i) {
-    return i & (-i);
-}
-int getSum(int n) {
+int n;
+int tree[100001];
+stack<int> st;
+int getSum(int x) {
     int sum = 0;
-    for (int i = n; i > 0; i -= lowbit(i))
-        sum += sorts[i];
+    for (int i = x; i > 0; i -= lowbit(i))
+        sum += tree[i];
     return sum;
 }
-int update(int n, int m) {
-    for (int i = n; i < 100001; i += lowbit(i))
-        sorts[i] += m;
+void update(int x, int val) {
+    for (int i = x; i < 100001; i += lowbit(i))
+        tree[i] += val;
 }
-
-void push(int n) {
-    top++;
-    stack[top] = n;
-    update(n, 1);
-}
-int pop() {
-    if (top == -1)
-        return -1;
-    update(stack[top], -1);
-    return stack[top--];
-}
-int peekmedian() {
-    if (top == -1)
-        return -1;
-
-    int l = 0, r = 100000, middem = top / 2 + 1;
-    while (l <= r) {
-        int mid = (l + r) / 2;
-        //printf("l: %d r: %d mid: %d\n", l, r, mid);
-        if (middem > getSum(mid))
-            l = mid + 1;
+int peekMedian() {
+    int mid = (st.size() + 1) / 2;
+    int l = 0, r = 100000;
+    while (l < r) {
+        int cnt = (l + r) / 2;
+        if (getSum(cnt) < mid)
+            l = cnt + 1;
         else
-            r = mid - 1;
+            r = cnt;
     }
     return l;
 }
 
 int main() {
-    int n;
-    scanf("%d\n", &n);
-    char str[16];
-    int num;
+    scanf("%d", &n);
+    char s[12];
+    int tmp;
     while (n--) {
-        scanf("%s", str);
-        if (str[1] == 'o') {
-            num = pop();
-            if (num == -1)
-                cout << "Invalid" << endl;
-            else
-                cout << num << endl;
-        } else if (str[1] == 'e') {
-            num = peekmedian();
-            if (num == -1)
-                cout << "Invalid" << endl;
-            else
-                cout << num << endl;
+        scanf("%s", s);
+        if (s[1] == 'o') {
+            if (!st.empty()) {
+                printf("%d\n", st.top());
+                update(st.top(), -1);
+                st.pop();
+            } else
+                printf("Invalid\n");
+        } else if (s[1] == 'u') {
+            scanf("%d", &tmp);
+            st.push(tmp);
+            update(st.top(), 1);
         } else {
-            scanf("%d", &num);
-            push(num);
+            if (!st.empty())
+                printf("%d\n", peekMedian());
+            else
+                printf("Invalid\n");
         }
     }
     return 0;

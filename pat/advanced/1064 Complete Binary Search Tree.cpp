@@ -1,50 +1,30 @@
 #include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <vector>
 
 using namespace std;
 
 int n;
-vector<int> nums(1000);
+int tree[1001], num[1001];
+int len = 1;
 
-int posOf(int n) {
-    int res = 0;
-    int i;
-    for (i = 0; res + pow(2, i) <= n; i++)
-        res += pow(2, i);
-
-    return (res + 1) / 2 + min(n - res, int(pow(2, i - 1)));
-}
-
-vector<vector<int>> tree;
-
-void run(int l, int r, int level) {
-    if (r <= l)
+void build(int now) {
+    if (now > n)
         return;
-    int pos = posOf(r - l) + l - 1;
-    //printf("posOf: %d pos: %d l: %d r: %d\n", posOf(r - l), pos, l, r);
-    if (level >= tree.size())
-        tree.push_back(vector<int>());
-    tree[level].push_back(nums[pos]);
-    run(l, pos, level + 1);
-    run(pos + 1, r, level + 1);
+    build(now * 2);
+    tree[now] = num[len++];
+    build(now * 2 + 1);
 }
 
 int main() {
-    cin >> n;
-    for (int i = 0; i < n; i++)
-        cin >> nums[i];
-    sort(nums.begin(), nums.begin() + n);
-
-    run(0, n, 0);
-    for (int i = 0; i < tree.size(); i++) {
-        for (int j = 0; j < tree[i].size(); j++) {
-            if (i != 0 || j != 0)
-                cout << " ";
-            cout << tree[i][j];
-        }
+    scanf("%d", &n);
+    for (int i = 1; i <= n; i++)
+        scanf("%d", &num[i]);
+    sort(num + 1, num + n + 1);
+    build(1);
+    for (int i = 1; i <= n; i++) {
+        if (i != 1)
+            printf(" ");
+        printf("%d", tree[i]);
     }
-
     return 0;
 }

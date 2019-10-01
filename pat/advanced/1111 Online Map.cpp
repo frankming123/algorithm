@@ -1,95 +1,121 @@
-// can not pass the last testcase, use dijiesitela can solve it
-#include <algorithm>
 #include <iostream>
-#include <set>
 #include <vector>
 
 using namespace std;
-
 #define inf 99999999
 
 int n, m;
 struct node {
-    int dis, tim;
-} nodes[500][500];
-set<int> road[500];
-
-int goal;
-bool visited[500];
-int mindis1 = inf;
-int mintim1 = inf;
-int mintim2 = inf;
-int mincnt2 = inf;
-vector<int> tmppath, path1, path2;
-
-void dfs(int now, int dis, int tim, int cnt) {
-    if (now == goal) {
-        if (dis < mindis1) {
-            mindis1 = dis;
-            mintim1 = tim;
-            path1 = tmppath;
-        } else if (dis == mindis1 && tim < mintim1) {
-            mintim1 = tim;
-            path1 = tmppath;
-        }
-        if (tim < mintim2) {
-            mintim2 = tim;
-            mincnt2 = cnt;
-            path2 = tmppath;
-        } else if (tim == mintim2 && cnt < mincnt2) {
-            mincnt2 = cnt;
-            path2 = tmppath;
-        }
-        return;
-    }
-    for (set<int>::iterator it = road[now].begin(); it != road[now].end(); it++) {
-        if (visited[*it])
-            continue;
-        visited[*it] = true;
-        tmppath.push_back(*it);
-        dfs(*it, dis + nodes[now][*it].dis, tim + nodes[now][*it].tim, cnt + 1);
-        visited[*it] = false;
-        tmppath.pop_back();
-    }
-}
+    int len, tim;
+} matrix[500][500];
+vector<int> near[500];
 
 int main() {
     scanf("%d%d", &n, &m);
     int t1, t2, t3, t4, t5;
     while (m--) {
         scanf("%d%d%d%d%d", &t1, &t2, &t3, &t4, &t5);
-        road[t1].insert(t2);
         if (t3 == 0)
-            road[t2].insert(t1);
-        nodes[t1][t2].dis = t4;
-        nodes[t1][t2].tim = t5;
-        nodes[t2][t1].dis = t4;
-        nodes[t2][t1].tim = t5;
+            near[t2].push_back(t1);
+        near[t1].push_back(t2);
+        matrix[t1][t2].len = t4;
+        matrix[t1][t2].tim = t5;
+        matrix[t2][t1].len = t4;
+        matrix[t2][t1].tim = t5;
     }
-    scanf("%d%d", &t1, &t2);
-    goal = t2;
-    visited[t1] = true;
-    dfs(t1, 0, 0, 0);
-    bool flag = true;
-    if (path1.size() != path2.size())
-        flag = false;
-    for (int i = 0; i < min(path1.size(), path2.size()); i++)
-        if (path1[i] != path2[i])
-            flag = false;
-
-    if (flag) {
-        printf("Distance = %d; Time = %d: %d", mindis1, mintim2, t1);
-        for (int i = 0; i < path1.size(); i++)
-            printf(" -> %d", path1[i]);
+    int s, d;
+    scanf("%d%d", &s, &d);
+    vector<int> dis(n, inf), visits(n, 0), pre(n, -1), tim(n, inf);
+    dis[s] = 0;
+    tim[s] = 0;
+    for (int i = 0; i < n; i++) {
+        int minn = inf, now = -1;
+        for (int j = 0; j < n; j++) {
+            if (!visits[j] && dis[j] < minn) {
+                minn = dis[j];
+                now = j;
+            }
+        }
+        if (now == -1)
+            break;
+        visits[now] = 1;
+        for (int j = 0; j < near[now].size(); j++) {
+            int next = near[now][j];
+            if (visits[next])
+                continue;
+            if (dis[now] + matrix[now][next].len < dis[next]) {
+                dis[next] = dis[now] + matrix[now][next].len;
+                pre[next] = now;
+                tim[next] = tim[now] + matrix[now][next].tim;
+            } else if (dis[now] + matrix[now][next].len == dis[next] && tim[now] + matrix[now][next].tim < tim[next]) {
+                pre[next] = now;
+                tim[next] = tim[now] + matrix[now][next].tim;
+            }
+        }
+    }
+    int now = d;
+    vector<int> v1;
+    while (now != s) {
+        v1.push_back(now);
+        now = pre[now];
+    }
+    int resdis = dis[d];
+    fill(dis.begin(), dis.end(), inf);
+    fill(visits.begin(), visits.end(), 0);
+    fill(pre.begin(), pre.end(), -1);
+    fill(tim.begin(), tim.end(), inf);
+    dis[s] = 0;
+    tim[s] = 0;
+    for (int i = 0; i < n; i++) {
+        int minn = inf, now = -1;
+        for (int j = 0; j < n; j++) {
+            if (!visits[j] && dis[j] < minn) {
+                minn = dis[j];
+                now = j;
+            }
+        }
+        if (now == -1)
+            break;
+        visits[now] = 1;
+        for (int j = 0; j < near[now].size(); j++) {
+            int next = near[now][j];
+            if (visits[next])
+                continue;
+            if (dis[now] + matrix[now][next].tim < dis[next]) {
+                dis[next] = dis[now] + matrix[now][next].tim;
+                pre[next] = now;
+                tim[next] = tim[now] + 1;
+            } else if (dis[now] + matrix[now][next].tim == dis[next] && tim[now] + 1 < tim[next]) {
+                pre[next] = now;
+                tim[next] = tim[now] + 1;
+            }
+        }
+    }
+    now = d;
+    vector<int> v2;
+    while (now != s) {
+        v2.push_back(now);
+        now = pre[now];
+    }
+    bool flag = false;
+    if (v1.size() != v2.size())
+        flag = true;
+    else {
+        for (int i = 0; i < v1.size(); i++)
+            if (v1[i] != v2[i])
+                flag = true;
+    }
+    if (!flag) {
+        printf("Distance = %d; Time = %d: %d", resdis, dis[d], s);
+        for (int i = v1.size() - 1; i >= 0; i--)
+            printf(" -> %d", v1[i]);
         return 0;
     }
-
-    printf("Distance = %d: %d", mindis1, t1);
-    for (int i = 0; i < path1.size(); i++)
-        printf(" -> %d", path1[i]);
-    printf("\n");
-    printf("Time = %d: %d", mintim2, t1);
-    for (int i = 0; i < path2.size(); i++)
-        printf(" -> %d", path2[i]);
+    printf("Distance = %d: %d", resdis, s);
+    for (int i = v1.size() - 1; i >= 0; i--)
+        printf(" -> %d", v1[i]);
+    printf("\nTime = %d: %d", dis[d], s);
+    for (int i = v2.size() - 1; i >= 0; i--)
+        printf(" -> %d", v2[i]);
     return 0;
 }

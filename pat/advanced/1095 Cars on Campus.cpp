@@ -1,6 +1,4 @@
-// unfinished...
 #include <algorithm>
-#include <cstring>
 #include <iostream>
 #include <map>
 #include <string>
@@ -9,82 +7,92 @@
 using namespace std;
 
 int n, k;
+
 struct node {
-    // char id[9];
     string id;
     int tim;
-    bool isIn;
+    bool in;
 };
-vector<node> record;
-int timToInt(int a, int b, int c) { return a * 3600 + b * 60 + c; }
-bool cmp(node &a, node &b) { return a.tim < b.tim; }
-struct setComp {
-    bool operator()(const char *a, const char *b) { return strcmp(a, b) < 0; }
-};
+vector<node> v1, v2;
+
+void print(vector<node> &v) {
+    for (int i = 0; i < v.size(); i++) {
+        cout << v[i].id;
+        printf(" %02d:%02d:%02d ", v[i].tim / 3600, v[i].tim / 60 % 60, v[i].tim % 60);
+        cout << v[i].in << endl;
+    }
+}
+
+bool cmp1(node &a, node &b) {
+    if (a.id == b.id)
+        return a.tim < b.tim;
+    return a.id < b.id;
+}
+bool cmp2(node &a, node &b) {
+    return a.tim < b.tim;
+}
 
 int main() {
     cin >> n >> k;
-    scanf("%d%d", &n, &k);
-    record.resize(n);
-    // char tmp[4];
-    string tmp;
+    string id;
     int t1, t2, t3;
-    map<string, int> mmap;
+    string in;
+    v1.resize(n);
     for (int i = 0; i < n; i++) {
-        cin >> record[i].id;
+        cin >> v1[i].id;
         scanf("%d:%d:%d", &t1, &t2, &t3);
-        cin >> tmp;
-        record[i].tim = timToInt(t1, t2, t3);
-        record[i].isIn = tmp[0] == 'i' ? true : false;
+        v1[i].tim = t1 * 3600 + t2 * 60 + t3;
+        cin >> in;
+        v1[i].in = in[0] == 'i' ? true : false;
     }
-
-    sort(record.begin(), record.end(), cmp);
-    for (int i = 0; i < n; i++) {
-        if (mmap.find(record[i].id) == mmap.end()) {
-            mmap[record[i].id] = record[i].isIn;
-        } else if (record[i].isIn == false && mmap[record[i].id]) {
-            mmap.erase(record[i].id);
+    sort(v1.begin(), v1.end(), cmp1);
+    map<string, int> mmap;
+    for (int i = 0; i < v1.size() - 1; i++) {
+        if (v1[i].id == v1[i + 1].id && v1[i].in && !v1[i + 1].in) {
+            v2.push_back(v1[i]);
+            v2.push_back(v1[i + 1]);
+            if (mmap.find(v1[i].id) != mmap.end())
+                mmap[v1[i].id] += v1[i + 1].tim - v1[i].tim;
+            else
+                mmap[v1[i].id] = v1[i + 1].tim - v1[i].tim;
         }
     }
-    for (auto i : mmap) {
-        cout << i.first;
-        printf(" %d\n", i.second);
-    }
-    int begin = 0;
-    while (begin < record.size()) {
-        if (mmap.find(record[begin].id) != mmap.end())
-            record.erase(record.begin() + begin);
+    sort(v2.begin(), v2.end(), cmp2);
+    vector<int> path(v2.size());
+    path[0] = 1;
+    for (int i = 1; i < path.size(); i++) {
+        if (v2[i].in)
+            path[i] = path[i - 1] + 1;
         else
-            begin++;
+            path[i] = path[i - 1] - 1;
     }
-    n = record.size();
-
-    for (int i = 0; i < n; i++)
-        printf("%s %d %d\n", record[i].id, record[i].tim, record[i].isIn);
-
-    vector<int> cnt(n);
-    cnt[0] = 1;
-    for (int i = 1; i < n; i++) {
-        cnt[i] = cnt[i - 1];
-        if (record[i].isIn)
-            cnt[i]++;
-        else
-            cnt[i]--;
-    }
+    int i = 0;
+    int tim;
     while (k--) {
         scanf("%d:%d:%d", &t1, &t2, &t3);
-        int now = timToInt(t1, t2, t3);
-        int i;
-        for (i = 0; i < n; i++)
-            if (record[i].tim > now)
-                break;
-
-        i--;
-        printf("i: %d ", i);
-        if (i < 0 || i >= n)
-            printf("0\n");
+        tim = t1 * 3600 + t2 * 60 + t3;
+        while (i < v2.size() && v2[i].tim <= tim)
+            i++;
+        if (i == 0)
+            cout << 0 << endl;
         else
-            printf("%d\n", cnt[i]);
+            cout << path[i - 1] << endl;
     }
+    tim = 0;
+    vector<string> res;
+    for (map<string, int>::iterator it = mmap.begin(); it != mmap.end(); it++) {
+        if (it->second > tim) {
+            res.clear();
+            res.push_back(it->first);
+            tim = it->second;
+        } else if (it->second == tim)
+            res.push_back(it->first);
+    }
+
+    sort(res.begin(), res.end());
+    for (int i = 0; i < res.size(); i++)
+        cout << res[i] << " ";
+
+    printf("%02d:%02d:%02d", tim / 3600, tim / 60 % 60, tim % 60);
     return 0;
 }
